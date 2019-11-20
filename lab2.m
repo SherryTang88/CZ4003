@@ -67,37 +67,23 @@ yr = (C-A*(358-1))/B
 
 %3.3
 
-function disparity_map = map(left,right,d1,d2)
-    half_d1 = floor(d1/2);
-    half_d2 = floor(d2/2);
+function disparity_map = disparity_map(left,right,d1,d2)
+half_d1 = floor(d1/2);
+half_d2 = floor(d2/2);
+[height,weight]=size(left);
+disparity_map = ones(height-(d1-1),weight-(d2-1));
     
-    [x1,y1]=size(left);
-    [x2,y2]=size(right);
-    
-    for i = 1+half_d1:x1-half_d1
-        for j = 1+half_d2:y1-half_d2
-            cur_r = left(i-half_d1:i+half_d1, j-half_d2:j+half_d2);
-            cur_l = rot90(cur_r,2);
-            min_coor = j;
-            min_diff = inf;
-            
-            for k =max(1+half_d2,j-14):j
-                T = right(i-half_d1:i+half_d1,k-half_d2:k+half_d2);
-                cur_r = rot90(T,2)
-                
-                conv_1 = conv2(T,cur_r);
-                conv_2 = conv2(T,cur_l);
-                
-                ssd = conv_1(d1,d2)-2*conv_2(d1,d2);
-                if ssd<min_diff
-                    min_diff = ssd;
-                    min_coor =k;
-                end
-            end
-            
-            disparity(i-half_d1,j-half_d2) = j-min_coor;
-            
-        end
+for i = 1+half_d1:height-half_d1
+    for j = 1+half_d2:weight-half_d2
+        T_jk = rot90(left(i-half_d1:i+half_d1, j-half_d2:j+half_d2),2);
+        I_jk = right(i-half_d1:i+half_d1,j-half_d2:j+half_d2);
+        first_term = conv2(I_jk.^2,ones(d1,d2));
+        second_term = sum(sum(T_jk.^2));
+        third_term = 2*conv2(I_jk,T_jk);
+        S = first_term + second_term - third_term;
+        min_S = min(S(half_d2+1,:));
+        min_ = find(S(half_d2+1,:) == min_S,1);
+        disparity_map(i,j) = j-min_;
     end
 end
 
@@ -108,4 +94,17 @@ imshow(left)
 right = imread('corridorr.jpg')
 right = rgb2gray(right)
 imshow(right)
+
+D = disparity_map(left,right,11,11)
+imshow(-D,[-15,15])
+
+left = imread('triclopsi2l.jpg')
+left = rgb2gray(left)
+
+right = imread('triclopsi2r.jpg')
+right = rgb2gray(right)
+
+H = map(left,right,11,11)
+imshow(-H,[-15,15])
+
 
