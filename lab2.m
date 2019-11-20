@@ -36,6 +36,13 @@ imshow(E)
 E = edge(mac,'canny',[0.04 0.1],5)
 imshow(E)
 
+E = edge(mac,'canny',[0.01 0.1],3)
+imshow(E)
+E = edge(mac,'canny',[0.05 0.1],3)
+imshow(E)
+E = edge(mac,'canny',[0.09 0.1],3)
+imshow(E)
+
 
 %3.2
 
